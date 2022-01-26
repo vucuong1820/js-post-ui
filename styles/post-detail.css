@@ -24,3 +24,7 @@ section.hero {
   width: 100%;
   margin-bottom: 1rem;
 }
+
+#goToEditPageLink:hover > i {
+  transform: unset;
+}
