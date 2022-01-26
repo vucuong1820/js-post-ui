@@ -8,5 +8,10 @@
   },
   "devDependencies": {
     "vite": "^2.7.2"
+  },
+  "dependencies": {
+    "axios": "^0.25.0",
+    "dayjs": "^1.10.7",
+    "lodash.debounce": "^4.0.8"
   }
 }
