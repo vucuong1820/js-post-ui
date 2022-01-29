@@ -41,6 +41,14 @@ export function createElement(post){
         })
     }
 
+    const editBtn = liElement.querySelector('[data-id="edit"]')
+    if(editBtn){
+        editBtn.addEventListener('click',(e) => {
+            e.stopPropagation();
+            window.location.assign(`/add-edit-post.html?id=${post.id}`)
+        })
+    }
+
     return liElement
 }
 
