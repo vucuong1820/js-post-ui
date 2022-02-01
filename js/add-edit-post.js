@@ -1,6 +1,21 @@
 import postApi from "./api/postApi";
-import { initPostForm } from "./utils";
+import { initPostForm, toast } from "./utils";
+async function handleAddEditFormSubmit(formValues){
+  try {
+    // check edit or add
+    const savedPost = formValues.id ? await postApi.update(formValues) : await postApi.add(formValues);
 
+    // show toast message
+    toast.success('Save post sucessfully!')
+    // redirect to detail page
+    setTimeout(() => {
+      window.location.assign(`/post-detail.html?id=${savedPost.id}`)
+    }, 2000)
+
+  } catch (error) {
+    console.log('Error when submit:', error);
+  }
+}
 //MAIN
 (async () => {
   try {
@@ -21,7 +36,7 @@ import { initPostForm } from "./utils";
     initPostForm({
       formId: 'postForm',
       defaultValues,
-      onSubmit: (values) => console.log('submit values:',values)
+      onSubmit: handleAddEditFormSubmit,
     })
   } catch (error) {
       console.log('failed to fetch edit post api:',error);
