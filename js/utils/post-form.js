@@ -1,4 +1,4 @@
-import { setBackgroundImg, toast } from ".";
+import { randomNumber, setBackgroundImg, toast } from ".";
 import { setFieldValues } from "./common";
 import { setTextContent } from "./common";
 import * as yup from "yup";
@@ -42,6 +42,7 @@ function getValidateSchema() {
         (value) => value.trim().split(" ").length >= 2
       ),
     description: yup.string(),
+    imageUrl: yup.string().required('Please random an image URL').url('URL is not valid')
   });
 }
 function setFieldError(form, name, error) {
@@ -56,7 +57,7 @@ async function validateForm(form, formValues) {
   // find errors
   try {
     // reset previous error
-    ["title", "author"].forEach((name) => setFieldError(form, name, ""));
+    ["title", "author","imageUrl"].forEach((name) => setFieldError(form, name, ""));
 
     // get schema
     const schema = getValidateSchema();
@@ -85,7 +86,7 @@ async function validateForm(form, formValues) {
 function compareDefaultAndNewValues(defaultValues, newValues) {
   let isMatch = false;
 
-  ["title", "author", "description"].forEach((name) => {
+  ["title", "author", "description","imageUrl"].forEach((name) => {
     const inputElement = document.querySelector(`[name="${name}"]`)
     inputElement.addEventListener('input',(e) => {
       if(defaultValues[name] === e.target.value) isMatch = true;
@@ -96,9 +97,18 @@ function compareDefaultAndNewValues(defaultValues, newValues) {
   return isMatch;
 }
 
+function randomImage(){
+
+  const imageUrl = `https://picsum.photos/id/${randomNumber(1000)}/1368/400`
+
+  setFieldValues(document, '[name="imageUrl"]', imageUrl);
+  setBackgroundImg(document, "#postHeroImage", imageUrl);
+
+}
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   const saveButton = form.querySelector('[name="submit"]');
+  const randomImgBtn = document.getElementById('postChangeImage')
   saveButton.disabled = true;
 
   if (!form) return;
@@ -111,6 +121,13 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
       saveButton.disabled = defaultValues[name] === e.target.value ? true : false;
     })
   });
+  
+  // bind event for random img url
+  if(randomImgBtn){
+    randomImgBtn.addEventListener('click', () => {
+      randomImage()
+    })
+  }
 
   // bind event for submit
   form.addEventListener("submit", async (e) => {

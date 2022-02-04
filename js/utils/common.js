@@ -25,3 +25,9 @@ export const setBackgroundImg = (parent, selector, imageUrl) => {
     element.style.backgroundImage = `url("${imageUrl}")`;
 }
 
+export const randomNumber = (n) => {
+    if( n <= 0 ) return;
+    
+    const number = Math.trunc(Math.random() * n)
+    return number
+}
