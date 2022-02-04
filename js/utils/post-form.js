@@ -70,12 +70,10 @@ async function validateForm(form, formValues) {
       if (errorLog[name]) continue;
 
       // set error message and confirm the error of field is logged
-      toast.error(`Error: ${validationError.message}`)
+      toast.error(`Error: ${validationError.message}`);
       setFieldError(form, name, validationError.message);
       errorLog[name] = true;
     }
-
-    
   }
   // was-validated
   const isValid = form.checkValidity();
@@ -84,21 +82,49 @@ async function validateForm(form, formValues) {
   return isValid;
 }
 
-export  function initPostForm({ formId, defaultValues, onSubmit }) {
-  const form = document.getElementById(formId);
-  if (!form) return;
+function compareDefaultAndNewValues(defaultValues, newValues) {
+  let isMatch = false;
 
+  ["title", "author", "description"].forEach((name) => {
+    const inputElement = document.querySelector(`[name="${name}"]`)
+    inputElement.addEventListener('input',(e) => {
+      if(defaultValues[name] === e.target.value) isMatch = true;
+    })
+  });
+  console.log(isMatch);
+
+  return isMatch;
+}
+
+export function initPostForm({ formId, defaultValues, onSubmit }) {
+  const form = document.getElementById(formId);
+  const saveButton = form.querySelector('[name="submit"]');
+  saveButton.disabled = true;
+
+  if (!form) return;
   setFormValues(form, defaultValues);
 
+  // disable button if values are not change
+  ["title", "author", "description"].forEach((name) => {
+    const inputElement = document.querySelector(`[name="${name}"]`)
+    inputElement.addEventListener('input',(e) => {
+      saveButton.disabled = defaultValues[name] === e.target.value ? true : false;
+    })
+  });
+
+  // bind event for submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-
+    
     const formValues = getFormValues(form);
     formValues.id = defaultValues.id;
 
-    const isValid = await validateForm(form,formValues);
+    const isValid = await validateForm(form, formValues);
     if (!isValid) return;
 
-    onSubmit(formValues)
+    await onSubmit(formValues);
+
+    // disable button after submit
+    saveButton.disabled = true;
   });
 }
