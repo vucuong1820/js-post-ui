@@ -121,6 +121,14 @@ function initImageSource(form){
     })
   })
 }
+function initImageUpload(form){
+  const uploadInput = form.querySelector('#uploadImg')
+  if(!uploadInput) return;
+  uploadInput.addEventListener('change',(e) => {
+    const previewImageUrl = URL.createObjectURL(e.target.files[0])
+    setBackgroundImg(document, "#postHeroImage", previewImageUrl);
+  })
+}
 
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
@@ -142,6 +150,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
   // show/hide button choose image source
   initImageSource(form)
   
+  // preview image when upload
+  initImageUpload(form)
+
   // bind event for random img url
   if(randomImgBtn){
     randomImgBtn.addEventListener('click', () => {
