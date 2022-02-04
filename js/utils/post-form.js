@@ -105,6 +105,23 @@ function randomImage(){
   setBackgroundImg(document, "#postHeroImage", imageUrl);
 
 }
+
+function renderImageSource(form, selectedValue){
+  const controlList = form.querySelectorAll('[data-id="imageSource"]')
+  controlList.forEach(control => {
+    control.hidden = control.dataset.imageSource !== selectedValue;
+  })
+}
+
+function initImageSource(form){
+  const radioList = form.querySelectorAll('[name="imageSource"]')
+  radioList.forEach(radio => {
+    radio.addEventListener('change',(e) => {
+      renderImageSource(form, e.target.value)
+    })
+  })
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   const saveButton = form.querySelector('[name="submit"]');
@@ -121,6 +138,9 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
       saveButton.disabled = defaultValues[name] === e.target.value ? true : false;
     })
   });
+
+  // show/hide button choose image source
+  initImageSource(form)
   
   // bind event for random img url
   if(randomImgBtn){
