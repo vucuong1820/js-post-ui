@@ -36,7 +36,11 @@ async function handleAddEditFormSubmit(formValues){
     initPostForm({
       formId: 'postForm',
       defaultValues,
-      onSubmit: handleAddEditFormSubmit,
+      // onSubmit: handleAddEditFormSubmit,
+      onSubmit: (form) => {
+        console.log('fomr values:',form);
+        console.log('form values file', form.imageUpload.name);
+      },
     })
   } catch (error) {
       console.log('failed to fetch edit post api:',error);
