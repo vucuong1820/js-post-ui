@@ -3,6 +3,11 @@ import { setFieldValues } from "./common";
 import { setTextContent } from "./common";
 import * as yup from "yup";
 
+const IMAGE_SOURCE = {
+  UPLOAD: "upload",
+  PICSUM: "picsum",
+};
+
 function setFormValues(form, values) {
   setFieldValues(form, '[name="title"]', values?.title);
   setFieldValues(form, '[name="author"]', values?.author);
@@ -24,6 +29,7 @@ function getFormValues(form) {
   const data = new FormData(form);
 
   for (const [key, value] of data) {
+    console.log('key:',key,'value:',value);
     formValues[key] = value;
   }
 
@@ -42,7 +48,27 @@ function getValidateSchema() {
         (value) => value.trim().split(" ").length >= 2
       ),
     description: yup.string(),
-    imageUrl: yup.string().required('Please random an image URL').url('URL is not valid')
+    imageSource: yup
+      .string()
+      .required("Please select an image source")
+      .oneOf([IMAGE_SOURCE.PICSUM, IMAGE_SOURCE.UPLOAD]),
+    imageUrl: yup
+      .string()
+      .when("imageSource", {
+        is: IMAGE_SOURCE.PICSUM,
+        then: yup
+          .string()
+          .required("Please random an image URL")
+          .url("URL is not valid"),
+      }),
+    imageUpload:yup
+    .mixed()
+    .when("imageSource", {
+      is: IMAGE_SOURCE.UPLOAD,
+      then: yup
+        .mixed()
+        .test('required','Please choose an image file from your computer',(value)=>Boolean(value?.name)),
+    }),
   });
 }
 function setFieldError(form, name, error) {
@@ -57,7 +83,9 @@ async function validateForm(form, formValues) {
   // find errors
   try {
     // reset previous error
-    ["title", "author","imageUrl"].forEach((name) => setFieldError(form, name, ""));
+    ["title", "author", "imageUrl","imageUpload"].forEach((name) =>
+      setFieldError(form, name, "")
+    );
 
     // get schema
     const schema = getValidateSchema();
@@ -83,57 +111,41 @@ async function validateForm(form, formValues) {
   return isValid;
 }
 
-function compareDefaultAndNewValues(defaultValues, newValues) {
-  let isMatch = false;
-
-  ["title", "author", "description","imageUrl"].forEach((name) => {
-    const inputElement = document.querySelector(`[name="${name}"]`)
-    inputElement.addEventListener('input',(e) => {
-      if(defaultValues[name] === e.target.value) isMatch = true;
-    })
-  });
-  console.log(isMatch);
-
-  return isMatch;
-}
-
-function randomImage(){
-
-  const imageUrl = `https://picsum.photos/id/${randomNumber(1000)}/1368/400`
+function randomImage() {
+  const imageUrl = `https://picsum.photos/id/${randomNumber(1000)}/1368/400`;
 
   setFieldValues(document, '[name="imageUrl"]', imageUrl);
   setBackgroundImg(document, "#postHeroImage", imageUrl);
-
 }
 
-function renderImageSource(form, selectedValue){
-  const controlList = form.querySelectorAll('[data-id="imageSource"]')
-  controlList.forEach(control => {
+function renderImageSource(form, selectedValue) {
+  const controlList = form.querySelectorAll('[data-id="imageSource"]');
+  controlList.forEach((control) => {
     control.hidden = control.dataset.imageSource !== selectedValue;
-  })
+  });
 }
 
-function initImageSource(form){
-  const radioList = form.querySelectorAll('[name="imageSource"]')
-  radioList.forEach(radio => {
-    radio.addEventListener('change',(e) => {
-      renderImageSource(form, e.target.value)
-    })
-  })
+function initImageSource(form) {
+  const radioList = form.querySelectorAll('[name="imageSource"]');
+  radioList.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      renderImageSource(form, e.target.value);
+    });
+  });
 }
-function initImageUpload(form){
-  const uploadInput = form.querySelector('#uploadImg')
-  if(!uploadInput) return;
-  uploadInput.addEventListener('change',(e) => {
-    const previewImageUrl = URL.createObjectURL(e.target.files[0])
+function initImageUpload(form) {
+  const uploadInput = form.querySelector('[name="imageUpload"]');
+  if (!uploadInput) return;
+  uploadInput.addEventListener("change", (e) => {
+    const previewImageUrl = URL.createObjectURL(e.target.files[0]);
     setBackgroundImg(document, "#postHeroImage", previewImageUrl);
-  })
+  });
 }
 
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   const saveButton = form.querySelector('[name="submit"]');
-  const randomImgBtn = document.getElementById('postChangeImage')
+  const randomImgBtn = document.getElementById("postChangeImage");
   saveButton.disabled = true;
 
   if (!form) return;
@@ -141,29 +153,30 @@ export function initPostForm({ formId, defaultValues, onSubmit }) {
 
   // disable button if values are not change
   ["title", "author", "description"].forEach((name) => {
-    const inputElement = document.querySelector(`[name="${name}"]`)
-    inputElement.addEventListener('input',(e) => {
-      saveButton.disabled = defaultValues[name] === e.target.value ? true : false;
-    })
+    const inputElement = document.querySelector(`[name="${name}"]`);
+    inputElement.addEventListener("input", (e) => {
+      saveButton.disabled =
+        defaultValues[name] === e.target.value ? true : false;
+    });
   });
 
   // show/hide button choose image source
-  initImageSource(form)
-  
+  initImageSource(form);
+
   // preview image when upload
-  initImageUpload(form)
+  initImageUpload(form);
 
   // bind event for random img url
-  if(randomImgBtn){
-    randomImgBtn.addEventListener('click', () => {
-      randomImage()
-    })
+  if (randomImgBtn) {
+    randomImgBtn.addEventListener("click", () => {
+      randomImage();
+    });
   }
 
   // bind event for submit
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    
+
     const formValues = getFormValues(form);
     formValues.id = defaultValues.id;
 
