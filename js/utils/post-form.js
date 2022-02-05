@@ -29,7 +29,6 @@ function getFormValues(form) {
   const data = new FormData(form);
 
   for (const [key, value] of data) {
-    console.log('key:',key,'value:',value);
     formValues[key] = value;
   }
 
@@ -52,22 +51,27 @@ function getValidateSchema() {
       .string()
       .required("Please select an image source")
       .oneOf([IMAGE_SOURCE.PICSUM, IMAGE_SOURCE.UPLOAD]),
-    imageUrl: yup
-      .string()
-      .when("imageSource", {
-        is: IMAGE_SOURCE.PICSUM,
-        then: yup
-          .string()
-          .required("Please random an image URL")
-          .url("URL is not valid"),
-      }),
-    imageUpload:yup
-    .mixed()
-    .when("imageSource", {
+    imageUrl: yup.string().when("imageSource", {
+      is: IMAGE_SOURCE.PICSUM,
+      then: yup
+        .string()
+        .required("Please random an image URL")
+        .url("URL is not valid"),
+    }),
+    imageUpload: yup.mixed().when("imageSource", {
       is: IMAGE_SOURCE.UPLOAD,
       then: yup
         .mixed()
-        .test('required','Please choose an image file from your computer',(value)=>Boolean(value?.name)),
+        .test(
+          "required",
+          "Please choose an image file from your computer",
+          (file) => Boolean(file?.name)
+        )
+        .test("max-size", "Maximum of an image file is 3 MB", (file) => {
+          const fileSize = file?.size || 0;
+          const MAX_SIZE = 5 * 1024 * 1024;
+          return fileSize <= MAX_SIZE;
+        }),
     }),
   });
 }
@@ -83,7 +87,7 @@ async function validateForm(form, formValues) {
   // find errors
   try {
     // reset previous error
-    ["title", "author", "imageUrl","imageUpload"].forEach((name) =>
+    ["title", "author", "imageUrl", "imageUpload"].forEach((name) =>
       setFieldError(form, name, "")
     );
 
@@ -142,23 +146,42 @@ function initImageUpload(form) {
   });
 }
 
+function checkChangesValues(saveButton, defaultValues) {
+  const changeImageButton = document.getElementById('postChangeImage')
+  changeImageButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveButton.disabled = false;
+    saveButton.innerHTML = `<i class="fas fa-save mr-1"></i> Save`;
+  });
+
+  ["title", "author", "description", "imageUrl", "imageUpload"].forEach(
+    (name) => {
+      const inputElement = document.querySelector(`[name="${name}"]`);
+        inputElement.addEventListener("input", (e) => {
+          if (defaultValues[name] === e.target.value) {
+            saveButton.disabled = true;
+            saveButton.innerHTML = `<i class="fas fa-exclamation-triangle"></i> You haven't change anything`;
+          } else {
+            saveButton.disabled = false;
+            saveButton.innerHTML = `<i class="fas fa-save mr-1"></i> Save`;
+          }
+        });
+    }
+  );
+}
+
 export function initPostForm({ formId, defaultValues, onSubmit }) {
   const form = document.getElementById(formId);
   const saveButton = form.querySelector('[name="submit"]');
   const randomImgBtn = document.getElementById("postChangeImage");
   saveButton.disabled = true;
+  saveButton.innerHTML = `<i class="fas fa-exclamation-triangle"></i> You haven't change anything`;
 
   if (!form) return;
   setFormValues(form, defaultValues);
 
   // disable button if values are not change
-  ["title", "author", "description"].forEach((name) => {
-    const inputElement = document.querySelector(`[name="${name}"]`);
-    inputElement.addEventListener("input", (e) => {
-      saveButton.disabled =
-        defaultValues[name] === e.target.value ? true : false;
-    });
-  });
+  checkChangesValues(saveButton, defaultValues);
 
   // show/hide button choose image source
   initImageSource(form);
