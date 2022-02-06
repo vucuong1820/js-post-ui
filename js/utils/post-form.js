@@ -141,13 +141,15 @@ function initImageUpload(form) {
   const uploadInput = form.querySelector('[name="image"]');
   if (!uploadInput) return;
   uploadInput.addEventListener("change", (e) => {
-    const previewImageUrl = URL.createObjectURL(e.target.files[0]);
+    const file = e.target.files[0]
+    const previewImageUrl = URL.createObjectURL(file);
     setBackgroundImg(document, "#postHeroImage", previewImageUrl);
+    validateFormField(form, {imageSource: IMAGE_SOURCE.UPLOAD , image: file}, 'image')
   });
 }
 
 function checkChangesValues(saveButton, defaultValues) {
-  const changeImageButton = document.getElementById('postChangeImage')
+  const changeImageButton = document.getElementById('postChangeImage');
   changeImageButton.addEventListener("click", (e) => {
     e.preventDefault();
     saveButton.disabled = false;
@@ -170,18 +172,68 @@ function checkChangesValues(saveButton, defaultValues) {
   );
 }
 
-export function initPostForm({ formId, defaultValues, onSubmit }) {
-  const form = document.getElementById(formId);
+async function validateFormField(form, formValues, name) {
+  try {
+    setFieldError(form, name, "")
+    const schema = getValidateSchema();
+    await schema.validateAt(name, formValues);
+  } catch (error) {
+      setFieldError(form, name, error.message);
+    
+  }
+  const field = form.querySelector(`[name="${name}"]`)
+  if(field && !field.checkValidity()){
+    field.parentElement.classList.add('was-validated')
+  }
+
+}
+function initValidateOnChange(form, defaultValues){
   const saveButton = form.querySelector('[name="submit"]');
-  const randomImgBtn = document.getElementById("postChangeImage");
   saveButton.disabled = true;
   saveButton.innerHTML = `<i class="fas fa-exclamation-triangle"></i> You haven't change anything`;
+
+  // if press button change image => have changed image
+  const changeImageButton = document.getElementById('postChangeImage');
+  changeImageButton.addEventListener("click", (e) => {
+    e.preventDefault();
+    saveButton.disabled = false;
+    saveButton.innerHTML = `<i class="fas fa-save mr-1"></i> Save`;
+    setFieldError(form, 'imageUrl', "");
+  });
+  
+
+  ["title","author","description", "imageUrl", "image"].forEach(name => {
+    const field = form.querySelector(`[name="${name}"]`)
+    if(!field) return;
+
+    field.addEventListener('input',(e) => {
+      // validate each field
+      const newValue = e.target.value;
+      if(name !== "description") validateFormField(form, { [name]: newValue}, name);
+      
+      // disable/enable if haven't/have changes
+      if (defaultValues[name] === newValue) {
+        saveButton.disabled = true;
+        saveButton.innerHTML = `<i class="fas fa-exclamation-triangle"></i> You haven't change anything`;
+      } else {
+        saveButton.disabled = false;
+        saveButton.innerHTML = `<i class="fas fa-save mr-1"></i> Save`;
+      }
+
+    })
+
+  })
+}
+
+export function initPostForm({ formId, defaultValues, onSubmit }) {
+  const form = document.getElementById(formId);
+  const randomImgBtn = document.getElementById("postChangeImage");
 
   if (!form) return;
   setFormValues(form, defaultValues);
 
-  // disable button if values are not change
-  checkChangesValues(saveButton, defaultValues);
+  // validate on change (validate field , disable save button if doesnt make any changes)
+  initValidateOnChange(form, defaultValues)
 
   // show/hide button choose image source
   initImageSource(form);
