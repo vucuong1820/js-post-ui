@@ -58,7 +58,7 @@ function getValidateSchema() {
         .required("Please random an image URL")
         .url("URL is not valid"),
     }),
-    imageUpload: yup.mixed().when("imageSource", {
+    image: yup.mixed().when("imageSource", {
       is: IMAGE_SOURCE.UPLOAD,
       then: yup
         .mixed()
@@ -87,7 +87,7 @@ async function validateForm(form, formValues) {
   // find errors
   try {
     // reset previous error
-    ["title", "author", "imageUrl", "imageUpload"].forEach((name) =>
+    ["title", "author", "imageUrl", "image"].forEach((name) =>
       setFieldError(form, name, "")
     );
 
@@ -138,7 +138,7 @@ function initImageSource(form) {
   });
 }
 function initImageUpload(form) {
-  const uploadInput = form.querySelector('[name="imageUpload"]');
+  const uploadInput = form.querySelector('[name="image"]');
   if (!uploadInput) return;
   uploadInput.addEventListener("change", (e) => {
     const previewImageUrl = URL.createObjectURL(e.target.files[0]);
@@ -154,7 +154,7 @@ function checkChangesValues(saveButton, defaultValues) {
     saveButton.innerHTML = `<i class="fas fa-save mr-1"></i> Save`;
   });
 
-  ["title", "author", "description", "imageUrl", "imageUpload"].forEach(
+  ["title", "author", "description", "imageUrl", "image"].forEach(
     (name) => {
       const inputElement = document.querySelector(`[name="${name}"]`);
         inputElement.addEventListener("input", (e) => {
