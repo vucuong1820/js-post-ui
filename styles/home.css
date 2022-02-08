@@ -104,3 +104,8 @@
 .post-item .card-body {
   height: 200px;
 }
+
+.modal-header .close {
+  border: none;
+  background-color: unset;
+}

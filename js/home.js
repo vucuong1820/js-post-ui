@@ -1,10 +1,11 @@
 import postApi from "./api/postApi";
-import {initPagination ,initSearch, renderPostList, renderPagination} from "./utils"
+import {initPagination ,initSearch, renderPostList, renderPagination, toast, registerModal} from "./utils"
 async function handleFilterChange(filterName, filterValue){
     try {
         const url = new URL(window.location);
-        url.searchParams.set(filterName, filterValue);        
+        if(filterName) url.searchParams.set(filterName, filterValue);        
         // set default page = 1 for search
+        
         if(filterName === 'title_like') url.searchParams.set('_page', 1);
 
         history.pushState({},'',url)
@@ -19,6 +20,18 @@ async function handleFilterChange(filterName, filterValue){
     }
 }
 
+function handlePostDelete(){
+    document.addEventListener('post-delete', (e) => {
+        const post = e.detail
+        registerModal({
+            post,
+            title: 'Delete post',
+            message: `Are you sure to delete post ${post.title}`,
+            onChange: handleFilterChange,
+        })
+    })
+}
+
 (async () => { 
     try {
         const url = new URL(window.location);
@@ -27,9 +40,8 @@ async function handleFilterChange(filterName, filterValue){
         if(!url.searchParams.get('_page')) url.searchParams.set('_page',1);
         history.pushState({},'',url)
         const queryParams = url.searchParams;
+        handlePostDelete()
 
-
-        
         initPagination({
             elementId: 'postsPagination',
             defaultParams: queryParams,

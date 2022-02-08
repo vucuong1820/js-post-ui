@@ -13,7 +13,7 @@ export function createElement(post){
 
     // update title, description, author
     setTextContent(liElement, '[data-id="title"]', post.title)
-    setTextContent(liElement, '[data-id="description"]', truncateText(post.description, 150))
+    setTextContent(liElement, '[data-id="description"]', truncateText(post.description, 100))
     setTextContent(liElement, '[data-id="author"]', post.author)
 
     // update thumbnail
@@ -41,6 +41,9 @@ export function createElement(post){
         })
     }
 
+    const menu = liElement.querySelector('.post-item-menu')
+    menu.addEventListener('click',(e) => { e.stopPropagation() })
+
     const editBtn = liElement.querySelector('[data-id="edit"]')
     if(editBtn){
         editBtn.addEventListener('click',(e) => {
@@ -49,12 +52,27 @@ export function createElement(post){
         })
     }
 
+    const removeBtn = liElement.querySelector('[data-id="remove"]')
+    if(removeBtn){
+        removeBtn.addEventListener('click',(e) => {
+            const customEvent = new CustomEvent('post-delete',{
+                bubbles: true,
+                detail: post,
+            })
+
+            removeBtn.dispatchEvent(customEvent)
+        })
+    }
+
     return liElement
 }
 
 export function renderPostList(elementId, postList){
-    if(!Array.isArray(postList) || postList.length === 0) return;
     const ulElement = document.getElementById(elementId)
+    if(!Array.isArray(postList) || postList.length === 0) {
+        ulElement.innerText = 'Search results are not available';
+        return;
+    };
     if(!ulElement) return;
     //clear the before content
     ulElement.textContent = '';
