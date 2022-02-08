@@ -1,10 +1,10 @@
 # POST UI - FINAL PROJECT
 
-- Based on vitejs
-- Using packages below:
- yup: validate form
- bootstrap: create UI 
- axios: API
- lodash.debounce: debounce
- toastify-js: show toast message
- dayjs: format time
+1. Based on vitejs
+2. Using packages below:
+ - yup: validate form
+ - bootstrap: create UI 
+ - axios: API
+ - dash.debounce: debounce
+ - astify-js: show toast message
+ - yjs: format time
